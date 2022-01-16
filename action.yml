@@ -8,43 +8,95 @@ inputs:
   
   # Base content
   base:
-    description: Metrics base content
+    description: >
+      Base content
+  
+  
+      The following sections are supported:
+  
+      * `header`, which usually contains username, two-week commits calendars and
+      a few additional data
+  
+      * `activity`, which contains recent activity (commits, pull requests,
+      issues, etc.)
+  
+      * `community`, which contains community stats (following, sponsors,
+      organizations, etc.)
+  
+      * `repositories`, which contains repositories stats (license, forks, stars,
+      etc.)
+  
+      * `metadata`, which contains informations about generated metrics
+  
+  
+      These are all enabled by default, but it is possible to explicitely opt out
+      from them.
     default: header, activity, community, repositories, metadata
   
-  # Number of repositories to use to computes metrics
-  # Using more will result in more accurate metrics, but you may hit GitHub rate-limit more easily if you use a lot of plugins
+  
   repositories:
-    description: Number of repositories to use
+    description: >
+      Repositories to fetch
+  
+  
+      A higher value result in more accurate metrics but can hit GitHub API
+      rate-limit more easily (especially with a lot of plugins enabled)
     default: 100
   
-  # Number of repositories to load at once by queries
-  # If you encounter GitHub queries timeouts, using a lower value here may solve issues
+  
   repositories_batch:
-    description: Number of repositories to load at once by queries
+    description: >
+      Repositories to fetch at a time
+  
+  
+      If you receive `Something went wrong while executing your query` (which is
+      usually caused by API timeout),
+  
+      try lowering this value.
     default: 100
   
-  # Include forked repositories into metrics
+  
   repositories_forks:
-    description: Include forks in metrics
+    description: Include forks
     default: no
   
-  # Filter repositories by user affiliations (you can specify multiple affiliations constraints)
-  # Set to "" to use all repositories related to you
-  # Note that it may affect some plugin outputs (broad affiliations will result in less representative metrics)
+  
   repositories_affiliations:
-    description: Repositories affiliations
+    description: >
+      Repositories affiliations
+  
+      - `owner`: owned repositories
+  
+      - `collaborator`: repositories with push access
+  
+      - `organization_member`: repositories from an organization where user is a
+      member
+  
+  
+      Some plugin outputs may be affected by this setting too.
+  
+  
+      Set to `""` to disable and fetch all repositories related to you.
+  
+      Broad affiliation will result in less representative metrics.
     default: owner
   
-  # List of default repositories that will be skipped
-  # Plugins supporting a "skip repositories option" will automatically append repositories listed in this option
+  
   repositories_skipped:
-    description: Default repositories to skip
+    description: Default skipped repositories
     default: ""
   
-  # List of surnames or email addresses you use when authoring commits
-  # These are mostly used to perform commits analysis to detect ownership
+  
+  users_ignored:
+    description: Default ignored users
+    default: github-actions[bot], dependabot[bot], dependabot-preview[bot]
+  
+  
   commits_authoring:
-    description: List of surnames or email addresses you use when authoring commits
+    description: |
+      Name, username, email addresses that has been used for authoring commits
+  
+      This setting can be used to detect commits ownerships in some plugin
     default: .user.login
   
   # ====================================================================================
@@ -230,6 +282,19 @@ inputs:
     description: Time to wait (in seconds) before each retry (output action)
     default: 120
   
+  # Time to wait (in seconds) at the end of job
+  # Use this to avoid triggering abuse mechanics on large workflows
+  delay:
+    description: Use this to avoid triggering abuse mechanics on large workflows
+    default: 0
+  
+  # Use a pre-built image from GitHub registry when using unreleased versions of "lowlighter/metrics"
+  # This option has no effect on forks (images will always be rebuilt from Dockerfile)
+  # See https://github.com/users/lowlighter/packages/container/package/metrics for more information
+  use_prebuilt_image:
+    description: Use pre-built image from GitHub registry
+    default: yes
+  
   # Throw on plugins errors
   # If disabled, metrics will handle errors gracefully with a message in rendered metrics
   plugins_errors_fatal:
@@ -269,185 +334,170 @@ inputs:
     description: Use mocked data instead of live APIs
     default: no
   
-  # Use a pre-built image from GitHub registry when using unreleased versions of "lowlighter/metrics"
-  # This option has no effect on forks (images will always be rebuilt from Dockerfile)
-  # See https://github.com/users/lowlighter/packages/container/package/metrics for more information
-  use_prebuilt_image:
-    description: Use pre-built image from GitHub registry
-    default: yes
-  
-  # Time to wait (in seconds) at the end of job
-  # Use this to avoid triggering abuse mechanics on large workflows
-  delay:
-    description: Use this to avoid triggering abuse mechanics on large workflows
-    default: 0
-  
   # ====================================================================================
   # 📅 Isometric commit calendar
   
-  # Enable or disable plugin
+  
   plugin_isocalendar:
-    description: Display an isometric view of your commits calendar
+    description: Enable isocalendar plugin
     default: no
   
-  # Set time window shown by isometric calendar
+  
   plugin_isocalendar_duration:
-    description: Set time window shown by isometric calendar
+    description: |
+      Time range
+      - `half-year`: 180 days
+      - `full-year`: 1 year
     default: half-year
   
   # ====================================================================================
   # 🈷️ Most used languages
   
-  # Enable or disable plugin
+  
   plugin_languages:
-    description: Display most used languages metrics
+    description: Enable languages plugin
     default: no
   
-  # List of languages that will be ignored
+  
   plugin_languages_ignored:
-    description: Languages to ignore
+    description: Ignored languages
     default: ""
   
-  # List of repositories that will be skipped
+  
   plugin_languages_skipped:
-    description: Repositories to skip
+    description: Skipped repositories
     default: ""
   
-  # Number of languages to display
-  # Set to 0 to disable limitations
+  
   plugin_languages_limit:
-    description: Maximum number of languages to display
+    description: Display limit
     default: 8
   
-  # Sections to display
-  plugin_languages_sections:
-    description: Sections to display
-    default: most-used
   
-  # Overrides default languages colors
-  # Use `${n}:${color}` to change the color of the n-th most used language (e.g. "0:red" to make your most used language red)
-  # Use `${language}:${color}` to change the color of named language (e.g. "javascript:red" to make JavaScript language red, language case is ignored)
-  # Use a value from `colorsets.json` to use a predefined set of colors
-  # Both hexadecimal and named colors are supported
-  # This cannot be used when "plugin_languages_limit" is greater than 8
+  plugin_languages_threshold:
+    description: Display threshold (percentage)
+    default: 0%
+  
+  
   plugin_languages_colors:
     description: Custom languages colors
     default: github
   
-  # Overrides default languages name
-  # Use `${language}:${alias}` to change the name of language (e.g. "javascript:JS" to make JavaScript render as "JS", case of left operand ignored)
+  
   plugin_languages_aliases:
     description: Custom languages names
     default: ""
   
-  # Languages additional details
+  
+  plugin_languages_sections:
+    description: Displayed sections
+    default: most-used
+  
+  
   plugin_languages_details:
     description: Additional details
     default: ""
   
-  # Minimum threshold (in percentage) to reach for languages to be displayed
-  plugin_languages_threshold:
-    description: Minimum threshold
-    default: 0%
   
-  # Compute indepth languages statistics by cloning repositories and processing your commits individually
-  # See documentation before enabling
   plugin_languages_indepth:
-    description: Indepth languages processing (see documentation before enabling)
+    description: Indepth mode (⚠️ read documentation first)
     default: false
   
-  # Analysis timeout (in minutes)
-  # In case of timeout, it'll automatically fallback to default algorithm
-  # Please be nice with GitHub Actions and disable `plugin_languages_indepth` if your account is not supported
-  # See documentation before enabling
+  
   plugin_languages_analysis_timeout:
-    description: Languages analysis timeout
+    description: Indepth mode - Analysis timeout
     default: 15
   
-  # GitHub language categories to display
+  
   plugin_languages_categories:
-    description: Language categories to display
+    description: Indepth mode - Displayed categories (most-used section)
     default: markup, programming
   
-  # GitHub language categories to display in recently-used section
+  
   plugin_languages_recent_categories:
-    description: Language categories to display (for recently used section)
+    description: Indepth mode - Displayed categories (recently-used section)
     default: markup, programming
   
-  # Number of activity events to load (for recently used languages statistics)
-  # A high number will consume more requests
+  
   plugin_languages_recent_load:
-    description: Number of events to load (for recently used section)
+    description: Events to load (recently-used section)
     default: 300
   
-  # Filter events by age (for recently used languages statistics)
-  # Set to 0 to disable age filtering
-  # Note that metrics won't be able to load more events than GitHub is able to provide
+  
   plugin_languages_recent_days:
-    description: Maximum event age (for recently used section)
+    description: Events maximum age (day, recently-used section)
     default: 14
   
   # ====================================================================================
   # 📌 Starred topics
   
-  # Enable or disable plugin
+  
   plugin_topics:
-    description: Display starred topics
+    description: Enable topics plugin
     default: no
   
-  # Plugin mode
+  
   plugin_topics_mode:
-    description: Plugin mode
+    description: |
+      Display mode:
+      - `labels`: display labels
+      - `icons`: display icons *(topics without icons will be ignored)*
+      - `starred`: alias for `labels`
+      - `mastered`: alias for `icons`
     default: starred
   
-  # Topics sorting order
+  
   plugin_topics_sort:
-    description: Sorting method of starred topics
+    description: |
+      Sorting method:
+      - `stars`: sort by most stars
+      - `activity`: sort by recent activity
+      - `starred`: sort by the date you starred them
+      - `random`: sort topics randomly
     default: stars
   
-  # Number of topics to display
-  # Set to 0 to disable limitations
-  # When in "starred" mode, additional topics will be grouped into an ellipsis
+  
   plugin_topics_limit:
-    description: Maximum number of topics to display
+    description: |
+      Display limit
+  
+      When using `plugin_topics_mode: labels`, an ellipsis will be displayed
     default: 15
   
   # ====================================================================================
   # 🌟 Recently starred repositories
   
-  # Enable or disable plugin
+  
   plugin_stars:
-    description: Display recently starred repositories
+    description: Enable stars plugin
     default: no
   
-  # Number of stars to display
+  
   plugin_stars_limit:
-    description: Maximum number of stars to display
+    description: Display limit
     default: 4
   
   # ====================================================================================
   # 📜 Repository licenses
   
-  # Enable or disable plugin
+  
   plugin_licenses:
-    description: Display licenses informations
+    description: Enable licenses plugin
     default: no
   
-  # Command to use to setup target repository
-  # It is required to install all dependencies that will be analyzed with github/licensed
+  
   plugin_licenses_setup:
-    description: Command to setup target repository
+    description: Setup command
     default: ""
   
-  # Display used licenses from both repository license and dependencies licenses ratio
+  
   plugin_licenses_ratio:
     description: Display used licenses ratio
     default: no
   
-  # Display permissions, limitations and conditions from both repository license and dependencies licenses
-  # Note that this is NOT legal advice, use at your own risk
+  
   plugin_licenses_legal:
-    description: Display legal informations about used licenses
+    description: Display permissions, limitations and conditions about used licenses
     default: yes
   
   # ====================================================================================
@@ -603,7 +653,7 @@ inputs:
   # Ignored users (useful to ignore bots users)
   plugin_reactions_ignored:
     description: Users to ignore
-    default: github-actions[bot], dependabot[bot], dependabot-preview[bot]
+    default: ""
   
   # ====================================================================================
   # 🧑‍🤝‍🧑 People plugin
@@ -655,9 +705,9 @@ inputs:
   # ====================================================================================
   # ✨ Stargazers over last weeks
   
-  # Enable or disable plugin
+  
   plugin_stargazers:
-    description: Display stargazers metrics
+    description: Enable stargazers plugin
     default: no
   
   # ====================================================================================
@@ -724,95 +774,145 @@ inputs:
   # ====================================================================================
   # 📰 Recent activity
   
-  # Enable or disable plugin
+  
   plugin_activity:
-    description: Display recent activity
+    description: Enable activity plugin
     default: no
   
-  # Number of activity events to display
+  
   plugin_activity_limit:
-    description: Maximum number of events to display
+    description: Display limit
     default: 5
   
-  # Number of activity events to load
-  # This should be higher than "plugin_activity_limit"
-  # A high number will consume more requests
+  
   plugin_activity_load:
-    description: Number of events to load
+    description: Events to load
     default: 300
   
-  # Filter events by age
-  # Note that it only filter fetched events, you may need to increase "plugin_activity_limit" to display older events
-  # Set to 0 to disable age filtering
+  
   plugin_activity_days:
-    description: Maximum event age
+    description: Events maximum age
     default: 14
   
-  # Filter events by type
-  plugin_activity_filter:
-    description: Events types to keep
-    default: all
   
-  # Set events visibility (use this to restrict events when using a "repo" token)
   plugin_activity_visibility:
-    description: Set events visibility
+    description: |
+      Events visibility
+  
+      Lets you hide private activity when using a `repo` scope token
     default: all
   
-  # Display events timestamps
+  
   plugin_activity_timestamps:
     description: Display events timestamps
     default: no
   
-  # List of repositories that will be skipped
+  
   plugin_activity_skipped:
-    description: Repositories to skip
+    description: Skipped repositories
     default: ""
   
-  # Ignored actors (useful to ignore bots users)
+  
   plugin_activity_ignored:
-    description: Actors to ignore
-    default: github-actions[bot], dependabot[bot], dependabot-preview[bot]
+    description: |
+      Ignored users
+  
+      Useful to ignore bots activity
+    default: ""
+  
+  
+  plugin_activity_filter:
+    description: >
+      Events types
+  
+  
+      These are fetched from [GitHub events
+      API](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/github-event-types)
+      and the following types are currently supported:
+  
+      - `push`: Push of commits
+  
+      - `issue`: Opening/Reopening/Closing of issues
+  
+      - `pr`: Opening/Closing of pull requests
+  
+      - `ref/create: Creation of git tags or git branches
+  
+      - `ref/delete: Deletion of git tags or git branches
+  
+      - `release`: Publication of new releases
+  
+      - `review`: Review of pull requests
+  
+      - `comment`: Comments on commits, issues and pull requests
+  
+      - `wiki`: Edition of wiki pages
+  
+      - `fork`: Forking of repositories
+  
+      - `star`: Starring of repositories
+  
+      - `public`: Repositories made public
+  
+      - `member`: Addition of new collaborator in repository
+    default: all
   
   # ====================================================================================
   # 🏆 Achievements
   
-  # Enable or disable plugin
+  
   plugin_achievements:
-    description: Display achievements
+    description: Enable achievements plugin
     default: no
   
-  # Minimal rank to display
+  
   plugin_achievements_threshold:
-    description: Display rank minimal threshold
+    description: |
+      Display rank threshold
+  
+      Use `X` to display achievements not yet unlocked
     default: C
   
-  # Display secrets achievements unlocked
+  
   plugin_achievements_secrets:
-    description: Display unlocked secrets achievements
+    description: Display secrets achievements
     default: yes
   
-  # Achievements display style
+  
   plugin_achievements_display:
-    description: Achievements display style
+    description: |
+      Display style
+      - `detailed`: display icon, name, description and ranking
+      - `compact`: display icon, name and value
     default: detailed
   
-  # Number of achievements events to display
-  # Set to 0 to disable limitations
+  
   plugin_achievements_limit:
-    description: Maximum number of achievements to display
+    description: Display limit
     default: 0
   
-  # List of unlocked achievements to hide
-  # Names must be given in lower case, without rank adjective
+  
   plugin_achievements_ignored:
-    description: Unlocked achievements to hide
+    description: >
+      Hide specified achievements
+  
+  
+      Use names without the rank adjective (i.e. without "great", "super" or
+      "master")
     default: ""
   
-  # List of unlocked achievements to display
-  # Names must be given in lower case, without rank adjective
-  # Using this option is equivalent of using "plugin_achievements_ignored" with all existing achievements but the ones listed
+  
   plugin_achievements_only:
-    description: Unlocked achievements to display
+    description: >
+      Restrict display to specified achievements
+  
+  
+      Use names without the rank adjective (i.e. without "great", "super" or
+      "master")
+  
+  
+      This option is equivalent to `plugin_achievements_ignored` with all existing
+      achievements but the ones listed in this option
     default: ""
   
   # ====================================================================================
@@ -868,35 +968,35 @@ inputs:
   # ====================================================================================
   # 💭 GitHub Community Support
   
-  # Enable or disable plugin
+  
   plugin_support:
-    description: GitHub Community Support metrics
+    description: Enable support plugin
     default: no
   
   # ====================================================================================
   # 👨‍💻 Lines of code changed
   
-  # Enable or disable plugin
+  
   plugin_lines:
-    description: Display lines of code metrics
+    description: Enable lines plugin
     default: no
   
-  # List of repositories that will be skipped
+  
   plugin_lines_skipped:
-    description: Repositories to skip
+    description: Skipped repositories
     default: ""
   
   # ====================================================================================
   # 🧮 Repositories traffic
   
-  # Enable or disable plugin
+  
   plugin_traffic:
-    description: Display repositories traffic metrics
+    description: Enable traffic plugin
     default: no
   
-  # List of repositories that will be skipped
+  
   plugin_traffic_skipped:
-    description: Repositories to skip
+    description: Skipped repositories
     default: ""
   
   # ====================================================================================
@@ -916,9 +1016,9 @@ inputs:
   # ====================================================================================
   # 🎫 Gists
   
-  # Enable or disable plugin
+  
   plugin_gists:
-    description: Display gists metrics
+    description: Enable gists plugin
     default: no
   
   # ====================================================================================
@@ -950,35 +1050,39 @@ inputs:
   # ====================================================================================
   # 💫 Starlists
   
-  # Enable or disable plugin
+  
   plugin_starlists:
-    description: Display star lists
+    description: Enable starlists plugin
     default: no
   
-  # Number of star lists to display
+  
   plugin_starlists_limit:
-    description: Number of star lists to display
+    description: Display limit (star lists)
     default: 2
   
-  # Number of repositories to display per star lists
+  
   plugin_starlists_limit_repositories:
-    description: Number of repositories to display per star lists
+    description: Display limit (repositories per star list)
     default: 2
   
-  # Shuffle displayed repositories for varied outputs
+  
   plugin_starlists_shuffle_repositories:
-    description: Shuffle displayed repositories
+    description: Shuffle data for varied outputs
     default: yes
   
-  # List of star lists that will be ignored
+  
   plugin_starlists_ignored:
-    description: Star lists to skip
+    description: Skipped star lists (case insensitive)
     default: ""
   
-  # List of star lists to display
-  # Using this option is equivalent of using "plugin_starlists_ignored" with all star lists but the ones listed
+  
   plugin_starlists_only:
-    description: Star lists to display
+    description: >
+      Restrict display to specified star lists (case insensitive)
+  
+  
+      This option is equivalent to `plugin_starlists_ignored` with all star lists
+      but the ones listed in this option
     default: ""
   
   # ====================================================================================
@@ -1144,40 +1248,42 @@ inputs:
   # ====================================================================================
   # 🌸 Anilist watch list and reading list
   
-  # Enable or disable plugin
+  
   plugin_anilist:
-    description: Display data from your AniList account
+    description: Enable aniList plugin
     default: no
   
-  # Types of medias to display
+  
   plugin_anilist_medias:
-    description: Medias types to display
+    description: Display medias types
     default: anime, manga
   
-  # Sections to display
-  # Values from "plugin_anilist_medias" may impact displayed sections
+  
   plugin_anilist_sections:
-    description: Sections to display
+    description: |
+      Displayed sections
+      - `favorites` will display favorites `plugin_anilist_medias`
+      - `watching` will display animes currently in watching list
+      - `reading` will display manga currently in reading list
+      - `characters` will display liked characters
     default: favorites
   
-  # Number of entries to display per section (this does not impacts characters section)
-  # Set to 0 to disable limitations
+  
   plugin_anilist_limit:
-    description: Maximum number of entries to display per section
+    description: Display limit (medias)
     default: 2
   
-  # Number of entries to display in characters section
-  # Set to 0 to disable limitations
+  
   plugin_anilist_limit_characters:
-    description: Maximum number of entries to display in characters section
+    description: Display limit (characters)
     default: 22
   
-  # Shuffle AniList data for varied outputs
+  
   plugin_anilist_shuffle:
-    description: Shuffle AniList data
+    description: Shuffle data for varied outputs
     default: yes
   
-  # Username on AniList
+  
   plugin_anilist_user:
     description: AniList login
     default: .user.login
@@ -1185,28 +1291,27 @@ inputs:
   # ====================================================================================
   # 🐤 Latest tweets
   
-  # Enable or disable plugin
+  
   plugin_tweets:
-    description: Display recent tweets
+    description: Enable tweets plugin
     default: no
   
-  # Twitter API token
-  # See https://apps.twitter.com for more informations
+  
   plugin_tweets_token:
     description: Twitter API token
     default: ""
   
-  # Display tweets attachments (images, video previews, etc.)
+  
   plugin_tweets_attachments:
-    description: Display tweets attchments
+    description: Display tweets attachments (images, video previews, etc.)
     default: no
   
-  # Number of tweets to display
+  
   plugin_tweets_limit:
-    description: Maximum number of tweets to display
+    description: Display limit
     default: 2
   
-  # Twitter username
+  
   plugin_tweets_user:
     description: Twitter username
     default: .user.twitter
@@ -1266,74 +1371,101 @@ inputs:
   # ====================================================================================
   # ⏰ WakaTime plugin
   
-  # Enable or disable plugin
+  
   plugin_wakatime:
-    description: Display WakaTime stats
+    description: Enable wakatime plugin
     default: no
   
-  # WakaTime API token
-  # See https://wakatime.com/settings/account get your API key
+  
   plugin_wakatime_token:
     description: WakaTime API token
     default: ""
   
-  # Time range to use for displayed stats
+  
   plugin_wakatime_days:
-    description: WakaTime time range
+    description: Time range
     default: 7
   
-  # Sections to display
+  
   plugin_wakatime_sections:
-    description: Sections to display
+    description: |
+      Displayed sections
+      - `time`: show total coding time and daily average
+      - `projects`: show most time spent project
+      - `projects-graphs`: show most time spent projects graphs
+      - `languages`: show most language
+      - `languages-graphs`: show languages graphs
+      - `editors`: show most used code editor
+      - `editors-graphs`: show code editors graphs
+      - `os`: show most used operating system
+      - `os-graphs`: show code operating systems graphs
     default: time, projects, projects-graphs, languages, languages-graphs, editors, os
   
-  # Number of entries to display per graph
-  # Set to 0 to disable limitations
+  
   plugin_wakatime_limit:
-    description: Maximum number of entries to display per graph
+    description: Display limit (per graph)
     default: 5
   
-  # If you use a selfhosted wakatime instance (wakapi)
-  # that is publicly available place your url here
-  #
-  # If you use the public wakapi instance the url
-  # would be https://wakapi.dev
+  
   plugin_wakatime_url:
-    description: Address where to reach your Wakatime instance
+    description: >
+      WakaTime url
+  
+  
+      Also compatible with self-hosted instance
+      ([wakapi](https://github.com/muety/wakapi))
     default: https://wakatime.com
   
-  # Username on Wakatime
+  
   plugin_wakatime_user:
-    description: Your Wakatime user on the selfhosted Wakapi instance
+    description: WakaTime username
     default: current
   
   # ====================================================================================
   # 💹 Stock prices
   
-  # Enable or disable plugin
+  
   plugin_stock:
-    description: Display stock prices of a given company
+    description: Enable stock plugin
     default: no
   
-  # RapidAPI Yahoo finance token
-  # Case insensitive
+  
   plugin_stock_token:
     description: Yahoo Finance token
     default: ""
   
-  # Company stock symbol (required)
+  
   plugin_stock_symbol:
     description: Company stock symbol
     default: ""
   
-  # Time range to display (relative to current date)
+  
   plugin_stock_duration:
-    description: Time range to display
+    description: |
+      Time range (relative to current date)
+      - `1d`: Today
+      - `5d`: 5 days
+      - `1mo`: 1 month
+      - `3mo`: 3 months
+      - `6mo`: 6 months
+      - `1y`: 1 year
+      - `2y`: 2 years
+      - `5y`: 5 years
+      - `10y`: 10 years
+      - `ytd`: Year to date
+      - `max`: All time
     default: 1d
   
-  # Time invervals between each records over the given time range
+  
   plugin_stock_interval:
-    description: Time intervals between records
+    description: |
+      Time interval between points
+      - `1m`: 1 minute
+      - `2m`: 2 minutes
+      - `5m`: 5 minutes
+      - `15m`: 15 minutes
+      - `60m`: 60 minutes
+      - `1d`: 1 day
     default: 5m
   
   # ====================================================================================
@@ -1395,29 +1527,29 @@ inputs:
   # ====================================================================================
   # 📸 Website screenshot
   
-  # Enable or disable plugin
+  
   plugin_screenshot:
-    description: Display a screenshot of any website
+    description: Enable screenshot plugin
     default: no
   
-  # Screenshot title caption
+  
   plugin_screenshot_title:
-    description: Screenshot title caption
+    description: Title caption
     default: Screenshot
   
-  # Website to take screenshot
+  
   plugin_screenshot_url:
-    description: Website to take screenshot
+    description: Website url
     default: ""
   
-  # Selector to take in screenshot
+  
   plugin_screenshot_selector:
-    description: Selector to take in screenshot
+    description: CSS Selector
     default: body
   
-  # Display or remove default page background
+  
   plugin_screenshot_background:
-    description: Display or remove default page background
+    description: Display background
     default: yes
   
 
